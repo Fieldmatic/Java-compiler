@@ -71,6 +71,72 @@ int lookup_symbol(char *name, unsigned kind) {
   return -1;
 }
 
+int* lookup_interface_functions(int interface_idx) {
+    int size = get_atr2(interface_idx);
+    int* function_indexes = malloc(size * sizeof(int));
+    int function_index = 0;
+    int i;
+    for (i = first_empty-1; i > interface_idx; i-- ) {
+      if (symbol_table[i].parent_index == interface_idx) {
+        function_indexes[function_index] = i;
+        function_index++;
+      }
+    }
+    return function_indexes;
+
+}
+
+int* lookup_function_params(int function_idx, int size) {
+    int* param_indexes = malloc(size * sizeof(int));
+    int param_index = 0;
+    int i;
+    for (i = function_idx+3; i > function_idx; i--){
+      if (symbol_table[i].parent_index == function_idx) {
+        param_indexes[param_index] = i;
+        param_index++;
+      }
+    }
+    return param_indexes;
+}
+
+int function_exists_in_class(int function_index, int class_idx) {
+    int i;
+    for(i = first_empty - 1; i > FUN_REG; i--) {
+      if (symbol_table[i].parent_index == class_idx 
+          && strcmp(symbol_table[i].name, symbol_table[function_index].name) == 0
+          && symbol_table[i].type == symbol_table[function_index].type)
+          {
+            return function_params_validation(function_index,i);
+          }
+      else if (symbol_table[i].parent_index == class_idx 
+               && strcmp(symbol_table[i].name, symbol_table[function_index].name) == 0) return -3;
+    }
+    return -4;
+}
+
+int function_params_validation(int function1_index, int function2_index) {
+      int size1 = get_atr1(function1_index);
+      int size2 = get_atr1(function2_index);
+      if (size1 != size2) return -1;
+      int *function1_param_indexes = lookup_function_params(function1_index, size1);
+      int *function2_param_indexes = lookup_function_params(function2_index, size2);
+      for (int i = 0; i < size1; i++){
+        bool found = FALSE;
+        for (int j = 0; j < size2; j++){
+          if (strcmp(symbol_table[function1_param_indexes[i]].name, symbol_table[function2_param_indexes[j]].name) == 0 && symbol_table[function1_param_indexes[i]].type == symbol_table[function2_param_indexes[j]].type)
+          {
+            found = TRUE;
+            break;
+          }
+        }
+        if (!found) return -2;
+      }
+      return 1;
+
+}
+
+
+
 void set_name(int index, char *name) {
   if(index > -1 && index < SYMBOL_TABLE_LENGTH)
     symbol_table[index].name = name;

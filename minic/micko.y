@@ -126,7 +126,33 @@ class
     }
 
   }
-  _LBRACKET class_items _RBRACKET { defining_class = 0;}
+  _LBRACKET class_items _RBRACKET 
+    { 
+      print_symtab();
+      int interfaceId = lookup_symbol($4, INTR);
+      int *interface_function_indexes;
+      interface_function_indexes = lookup_interface_functions(interfaceId);
+      for (int i = 0; i < get_atr2(interfaceId); i++) {
+        int response = function_exists_in_class(interface_function_indexes[i], class_idx);
+        switch(response)
+        {
+          case -1:
+                  err("parameter count of function '%s' in class '%s' isn't valid!",get_name(interface_function_indexes[i]), get_name(class_idx));
+                  break;
+          case -2:
+                  err("parameters of function '%s' aren't equal to parameters from implemented interface method in class '%s'!",get_name(interface_function_indexes[i]), get_name(class_idx));
+                  break;
+          case -3:
+                  err("return type of function '%s' isnt equal to return type from implemented interface method in class '%s'!",get_name(interface_function_indexes[i]), get_name(class_idx));
+                  break;
+          case -4:
+                  err("implementation of method '%s' not found in class '%s'!",get_name(interface_function_indexes[i]), get_name(class_idx));
+                  break;
+          default:
+                  break;
+        }
+      }
+      defining_class = 0;}
   ;
 
 class_items
@@ -182,22 +208,17 @@ interface_function
         fun_idx = lookup_symbol($2, FUN);
         if(fun_idx == NO_INDEX){
           fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, interface_idx);
+          set_atr2(interface_idx, get_atr2(interface_idx) + 1);
         }
         else {
           if (get_parent_index(fun_idx) == interface_idx) err ("redefinition of function '%s' in interface '%s'", $2,get_name(interface_idx));
-          else fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, interface_idx);
+          else {
+            fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, interface_idx);
+            set_atr2(interface_idx, get_atr2(interface_idx) + 1);
+          }
         }
   }
-   _LPAREN parameter _RPAREN _SEMICOLON
-      {
-        clear_symbols(fun_idx + 1);
-        var_num = 0;
-        
-        code("\n@%s_exit:", $2);
-        code("\n\t\tMOV \t%%14,%%15");
-        code("\n\t\tPOP \t%%14");
-        code("\n\t\tRET");
-      }
+   _LPAREN parameter_list _RPAREN _SEMICOLON
   ;
   
 function
@@ -225,26 +246,25 @@ function
         code("\n\t\tPUSH\t%%14");
         code("\n\t\tMOV \t%%15,%%14");
       }
-    _LPAREN parameter _RPAREN body
+    _LPAREN parameter_list _RPAREN body
       {
-        clear_symbols(fun_idx + 1);
         var_num = 0;
-        
-        code("\n@%s_exit:", $2);
-        code("\n\t\tMOV \t%%14,%%15");
-        code("\n\t\tPOP \t%%14");
-        code("\n\t\tRET");
       }
   ;
 
-parameter
+parameter_list
   : /* empty */
       { set_atr1(fun_idx, 0); }
+  | parameter
 
-  | _TYPE _ID
+  | parameter_list _COMMA parameter
+  ;
+
+parameter
+  : _TYPE _ID
       {
-        insert_symbol($2, PAR, $1, 1, NO_ATR, NO_ATR);
-        set_atr1(fun_idx, 1);
+        insert_symbol($2, PAR, $1, 1, NO_ATR, fun_idx);
+        set_atr1(fun_idx, get_atr1(fun_idx) + 1);
         set_atr2(fun_idx, $1);
       }
   ;
@@ -267,10 +287,13 @@ variable_list
 variable
   : _TYPE _ID _SEMICOLON
       {
-        if(lookup_symbol($2, VAR|PAR) == NO_INDEX)
-           insert_symbol($2, VAR, $1, ++var_num, NO_ATR, NO_ATR);
-        else 
-           err("redefinition of '%s'", $2);
+        int var_idx = lookup_symbol($2, VAR|PAR);
+        if(var_idx == NO_INDEX)
+           insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
+        else {
+           if (get_parent_index(var_idx) != fun_idx) insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
+           else err("redefinition of '%s' in function '%s'", $2, get_name(fun_idx));
+        }
       }
   ;
 
@@ -333,7 +356,6 @@ exp
         if($$ == NO_INDEX)
           err("'%s' undeclared", $1);
       }
-
   | function_call
       {
         $$ = take_reg();

@@ -1,7 +1,7 @@
 
 interface testInterface {
-    int dodaj(int x);
-    int oduzmi (int y);
+    int dodaj(int x, int z, int f);
+    int oduzmi (int y, int x, int f);
 }
 
 
@@ -14,10 +14,18 @@ class Person implements testInterface {
     Person(int parametar) {
     }
 
-    int funkcija(){
+    int dodaj (int x, int z, int f) {
+
+    }
+
+    int oduzmi(int x, int y, int f) {
+
+    }
+
+
+    int funkcija(int x, int y, int f){
         int a;
         int b;
-        int y;
         y=5;
         return 5;
     }

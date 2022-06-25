@@ -30,6 +30,14 @@ int insert_literal(char *str, unsigned type);
 // Vraca indeks pronadjenog simbola ili vraca -1.
 int lookup_symbol(char *name, unsigned kind);
 
+// vraca 1 ukoliko klasa implementira metodu sa istim imenom i povratnom vrednosti ili vraca -1
+int function_exists_in_class(int function_index, int class_idx);
+
+// vraca niz indexa iz tabele simbola koji predstavljaju metode interfejsa koje klasa treba da implementira
+int* lookup_interface_functions(int interface_idx);
+// validacija poklapanja parametara funkcije, vraca 1 ako je sve u redu, -1 ukoliko broj parametara nije isti, -2 ukoliko se parametri ne poklapaju
+int function_params_validation(int function1_index, int function2_index);
+
 // set i get metode za polja tabele simbola
 void     set_name(int index, char *name);
 char*    get_name(int index);
