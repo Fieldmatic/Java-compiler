@@ -1,6 +1,14 @@
 
-@?_body:
-@?_body:
+@dodaj_exit:
+		MOV 	%14,%15
+		POP 	%14
+		RET
+@oduzmi_exit:
+		MOV 	%14,%15
+		POP 	%14
+		RET
+@oduzmi_body:
+@oduzmi_body:
 funkcija:
 		PUSH	%14
 		MOV 	%15,%14
@@ -46,6 +54,14 @@ testic:
 		MOV 	$5,%13
 		JMP 	@testic_exit
 @testic_exit:
+		MOV 	%14,%15
+		POP 	%14
+		RET
+@dodaj_exit:
+		MOV 	%14,%15
+		POP 	%14
+		RET
+@oduzmi_exit:
 		MOV 	%14,%15
 		POP 	%14
 		RET

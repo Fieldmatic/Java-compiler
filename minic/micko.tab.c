@@ -497,10 +497,10 @@ static const yytype_uint16 yyrline[] =
        0,    67,    67,    75,    76,    80,    81,    82,    87,    86,
       99,   101,   107,   106,   118,   117,   132,   134,   138,   139,
      140,   145,   144,   152,   154,   157,   158,   162,   166,   166,
-     181,   180,   196,   195,   233,   235,   245,   244,   253,   255,
-     259,   268,   270,   274,   275,   276,   277,   281,   285,   298,
-     300,   319,   321,   328,   334,   339,   342,   348,   347,   367,
-     369,   381,   384,   390,   395,   389,   408,   418
+     181,   180,   205,   204,   242,   244,   254,   253,   262,   264,
+     268,   277,   279,   283,   284,   285,   286,   290,   294,   307,
+     309,   328,   330,   337,   343,   348,   351,   357,   356,   376,
+     378,   390,   393,   399,   404,   398,   417,   427
 };
 #endif
 
@@ -1577,8 +1577,21 @@ yyreduce:
   ;}
     break;
 
+  case 31:
+#line 192 "micko.y"
+    {
+        clear_symbols(fun_idx + 1);
+        var_num = 0;
+        
+        code("\n@%s_exit:", (yyvsp[(2) - (7)].s));
+        code("\n\t\tMOV \t%%14,%%15");
+        code("\n\t\tPOP \t%%14");
+        code("\n\t\tRET");
+      ;}
+    break;
+
   case 32:
-#line 196 "micko.y"
+#line 205 "micko.y"
     {
         if (defining_class == 1) 
         {
@@ -1605,7 +1618,7 @@ yyreduce:
     break;
 
   case 33:
-#line 220 "micko.y"
+#line 229 "micko.y"
     {
         clear_symbols(fun_idx + 1);
         var_num = 0;
@@ -1618,12 +1631,12 @@ yyreduce:
     break;
 
   case 34:
-#line 233 "micko.y"
+#line 242 "micko.y"
     { set_atr1(fun_idx, 0); ;}
     break;
 
   case 35:
-#line 236 "micko.y"
+#line 245 "micko.y"
     {
         insert_symbol((yyvsp[(2) - (2)].s), PAR, (yyvsp[(1) - (2)].i), 1, NO_ATR, NO_ATR);
         set_atr1(fun_idx, 1);
@@ -1632,7 +1645,7 @@ yyreduce:
     break;
 
   case 36:
-#line 245 "micko.y"
+#line 254 "micko.y"
     {
         if(var_num)
           code("\n\t\tSUBS\t%%15,$%d,%%15", 4*var_num);
@@ -1641,7 +1654,7 @@ yyreduce:
     break;
 
   case 40:
-#line 260 "micko.y"
+#line 269 "micko.y"
     {
         if(lookup_symbol((yyvsp[(2) - (3)].s), VAR|PAR) == NO_INDEX)
            insert_symbol((yyvsp[(2) - (3)].s), VAR, (yyvsp[(1) - (3)].i), ++var_num, NO_ATR, NO_ATR);
@@ -1651,7 +1664,7 @@ yyreduce:
     break;
 
   case 48:
-#line 286 "micko.y"
+#line 295 "micko.y"
     {
         int idx = lookup_symbol((yyvsp[(1) - (4)].s), VAR|PAR);
         if(idx == NO_INDEX)
@@ -1664,7 +1677,7 @@ yyreduce:
     break;
 
   case 50:
-#line 301 "micko.y"
+#line 310 "micko.y"
     {
         if(get_type((yyvsp[(1) - (3)].i)) != get_type((yyvsp[(3) - (3)].i)))
           err("invalid operands: arithmetic operation");
@@ -1683,7 +1696,7 @@ yyreduce:
     break;
 
   case 52:
-#line 322 "micko.y"
+#line 331 "micko.y"
     {
         (yyval.i) = lookup_symbol((yyvsp[(1) - (1)].s), VAR|PAR);
         if((yyval.i) == NO_INDEX)
@@ -1692,7 +1705,7 @@ yyreduce:
     break;
 
   case 53:
-#line 329 "micko.y"
+#line 338 "micko.y"
     {
         (yyval.i) = take_reg();
         gen_mov(FUN_REG, (yyval.i));
@@ -1700,22 +1713,22 @@ yyreduce:
     break;
 
   case 54:
-#line 335 "micko.y"
+#line 344 "micko.y"
     { (yyval.i) = (yyvsp[(2) - (3)].i); ;}
     break;
 
   case 55:
-#line 340 "micko.y"
+#line 349 "micko.y"
     { (yyval.i) = insert_literal((yyvsp[(1) - (1)].s), INT); ;}
     break;
 
   case 56:
-#line 343 "micko.y"
+#line 352 "micko.y"
     { (yyval.i) = insert_literal((yyvsp[(1) - (1)].s), UINT); ;}
     break;
 
   case 57:
-#line 348 "micko.y"
+#line 357 "micko.y"
     {
         fcall_idx = lookup_symbol((yyvsp[(1) - (1)].s), FUN);
         if(fcall_idx == NO_INDEX)
@@ -1724,7 +1737,7 @@ yyreduce:
     break;
 
   case 58:
-#line 354 "micko.y"
+#line 363 "micko.y"
     {
         if(get_atr1(fcall_idx) != (yyvsp[(4) - (5)].i))
           err("wrong number of arguments");
@@ -1737,12 +1750,12 @@ yyreduce:
     break;
 
   case 59:
-#line 367 "micko.y"
+#line 376 "micko.y"
     { (yyval.i) = 0; ;}
     break;
 
   case 60:
-#line 370 "micko.y"
+#line 379 "micko.y"
     { 
       if(get_atr2(fcall_idx) != get_type((yyvsp[(1) - (1)].i)))
         err("incompatible type for argument");
@@ -1754,17 +1767,17 @@ yyreduce:
     break;
 
   case 61:
-#line 382 "micko.y"
+#line 391 "micko.y"
     { code("\n@exit%d:", (yyvsp[(1) - (1)].i)); ;}
     break;
 
   case 62:
-#line 385 "micko.y"
+#line 394 "micko.y"
     { code("\n@exit%d:", (yyvsp[(1) - (3)].i)); ;}
     break;
 
   case 63:
-#line 390 "micko.y"
+#line 399 "micko.y"
     {
         (yyval.i) = ++lab_num;
         code("\n@if%d:", lab_num);
@@ -1772,7 +1785,7 @@ yyreduce:
     break;
 
   case 64:
-#line 395 "micko.y"
+#line 404 "micko.y"
     {
         code("\n\t\t%s\t@false%d", opp_jumps[(yyvsp[(4) - (4)].i)], (yyvsp[(3) - (4)].i));
         code("\n@true%d:", (yyvsp[(3) - (4)].i));
@@ -1780,7 +1793,7 @@ yyreduce:
     break;
 
   case 65:
-#line 400 "micko.y"
+#line 409 "micko.y"
     {
         code("\n\t\tJMP \t@exit%d", (yyvsp[(3) - (7)].i));
         code("\n@false%d:", (yyvsp[(3) - (7)].i));
@@ -1789,7 +1802,7 @@ yyreduce:
     break;
 
   case 66:
-#line 409 "micko.y"
+#line 418 "micko.y"
     {
         if(get_type((yyvsp[(1) - (3)].i)) != get_type((yyvsp[(3) - (3)].i)))
           err("invalid operands: relational operator");
@@ -1799,7 +1812,7 @@ yyreduce:
     break;
 
   case 67:
-#line 419 "micko.y"
+#line 428 "micko.y"
     {
         if(get_type(fun_idx) != get_type((yyvsp[(2) - (3)].i)))
           err("incompatible types in return");
@@ -1810,7 +1823,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 1814 "micko.tab.c"
+#line 1827 "micko.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2024,7 +2037,7 @@ yyreturn:
 }
 
 
-#line 427 "micko.y"
+#line 436 "micko.y"
 
 
 int yyerror(char *s) {

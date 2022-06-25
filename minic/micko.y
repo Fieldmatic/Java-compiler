@@ -189,6 +189,15 @@ interface_function
         }
   }
    _LPAREN parameter _RPAREN _SEMICOLON
+      {
+        clear_symbols(fun_idx + 1);
+        var_num = 0;
+        
+        code("\n@%s_exit:", $2);
+        code("\n\t\tMOV \t%%14,%%15");
+        code("\n\t\tPOP \t%%14");
+        code("\n\t\tRET");
+      }
   ;
   
 function
