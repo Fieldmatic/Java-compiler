@@ -1,4 +1,39 @@
-class Person {
+
+interface testInterface {
+    int dodaj(int x);
+    int oduzmi (int y);
+}
+
+
+class Person implements testInterface {
+    int a;
+    int b;
+
+    Person() {}
+
+    Person(int parametar) {
+    }
+
+    int funkcija(){
+        int a;
+        int b;
+        int y;
+        y=5;
+        return 5;
+    }
+    int z;
+    int testic(){
+        int a;
+        int b;
+        int y;
+        y=5;
+        return y;
+    }
+
+
+}
+
+class Osoba {
     int a;
     int b;
 
@@ -8,38 +43,16 @@ class Person {
         y=0;
         return 5;
     }
-    int z;
+
     int testic(){
         int x;
         int y;
-        y=5;
-        return y;
-    }
-
-    int y;
-
-}
-
-class Osoba {
-    int a;
-    int b;
-
-    int funkcija1(){
-        int x;
-        int y;
-        y=0;
-        return 5;
-    }
-
-    int testic1(){
-        int x;
-        int y;
         y=0;
         return 5;
     }
 }
 
-interface testInterface {
+interface testInterface2 {
     int dodaj(int x);
     int oduzmi (int y);
 }

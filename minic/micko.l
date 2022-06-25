@@ -17,6 +17,7 @@
 "return"             { return _RETURN; }
 "class"              { return _CLASS;}
 "interface"          { return _INTERFACE;}
+"implements"         { return _IMPLEMENTS;}
 
 "("                  { return _LPAREN; }
 ")"                  { return _RPAREN; }
@@ -24,6 +25,7 @@
 "}"                  { return _RBRACKET; }
 ";"                  { return _SEMICOLON; }
 "="                  { return _ASSIGN; }
+","                  { return _COMMA; }
 
 "+"                  { yylval.i = ADD; return _AROP; }
 "-"                  { yylval.i = SUB; return _AROP; }

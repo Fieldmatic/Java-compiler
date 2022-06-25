@@ -4,6 +4,7 @@
   #include "defs.h"
   #include "symtab.h"
   #include "codegen.h"
+  #include "string.h"
 
   int yyparse(void);
   int yylex(void);
@@ -20,6 +21,13 @@
   int fcall_idx = -1;
   int lab_num = -1;
   FILE *output;
+
+  int class_idx = -1;
+  int defining_class = 0;
+  int interface_idx = -1;
+  int defining_interface = 0;
+  int attr_idx = -1;
+
 %}
 
 %union {
@@ -44,6 +52,8 @@
 %token <i> _RELOP
 %token _CLASS
 %token _INTERFACE
+%token _COMMA
+%token _IMPLEMENTS
 
 %type <i> num_exp exp literal
 %type <i> function_call argument rel_exp if_part
@@ -73,7 +83,17 @@ structure_list
   ;
 
 interface
-  : _INTERFACE _ID _LBRACKET interface_items _RBRACKET
+  : _INTERFACE _ID 
+  {
+    defining_interface = 1;
+    if (lookup_symbol($2, INTR) == NO_INDEX) {
+      interface_idx = insert_symbol($2, INTR, NO_TYPE, NO_ATR, NO_ATR, NO_ATR);
+    }
+    else err ("redefinition of interface '%s'", $2);
+
+  }
+  
+  _LBRACKET interface_items _RBRACKET {defining_interface = 0;}
   ;
 
 interface_items
@@ -82,7 +102,31 @@ interface_items
   ;
 
 class
-  : _CLASS _ID _LBRACKET class_items _RBRACKET
+  :
+  _CLASS _ID 
+  {
+    defining_class = 1;
+    if (lookup_symbol($2, CLASS) == NO_INDEX) {
+      class_idx = insert_symbol($2, CLASS, NO_TYPE, NO_ATR, NO_ATR, NO_ATR);
+    }
+    else err ("redefinition of class '%s'", $2);
+
+  }
+  _LBRACKET class_items _RBRACKET { defining_class = 0;}
+
+  |  _CLASS _ID _IMPLEMENTS _ID
+  {
+    defining_class = 1;
+    if (lookup_symbol($2, CLASS) == NO_INDEX) {
+      class_idx = insert_symbol($2, CLASS, NO_TYPE, NO_ATR, NO_ATR, NO_ATR);
+    }
+    else err ("redefinition of class '%s'", $2);
+    if (lookup_symbol($4, INTR) == NO_INDEX) {
+      err ("definition for interface '%s' doesn't exist", $4);
+    }
+
+  }
+  _LBRACKET class_items _RBRACKET { defining_class = 0;}
   ;
 
 class_items
@@ -93,25 +137,80 @@ class_items
 class_item
   : function
   | class_attribute
+  | constructor
+  ;
+
+constructor
+  : _ID _LPAREN
+  {
+    char* className = get_name(class_idx);
+    char* constructorName = $1;
+    if (strcmp(className, constructorName) != 0) err("constructor name '%s' not valid for class '%s'",$1, get_name(class_idx));
+  } constructor_parameters _RPAREN body
+  ;
+
+constructor_parameters
+  : //empty is possibility
+  | constructor_parameter_list
+
+constructor_parameter_list
+  : constructor_parameter
+  | constructor_parameter_list _COMMA constructor_parameter
+  ;
+
+constructor_parameter
+  : _TYPE _ID
   ;
 
 class_attribute
-  : _TYPE _ID _SEMICOLON
+  : _TYPE _ID {
+    attr_idx = lookup_symbol($2, ATTR);
+    if (attr_idx == NO_INDEX){
+      attr_idx = insert_symbol($2,ATTR,$1,NO_ATR,NO_ATR,class_idx);
+    }
+    else {
+       if (get_parent_index(attr_idx) == class_idx) err ("duplicate attribute '%s' in class '%s'", $2,get_name(class_idx));
+       else attr_idx = insert_symbol($2,ATTR,$1,NO_ATR,NO_ATR,class_idx);
+    }
+  }_SEMICOLON
   ;
 
 
 interface_function
-  : _TYPE _ID _LPAREN parameter _RPAREN _SEMICOLON
+  : _TYPE _ID
+  {     
+        fun_idx = lookup_symbol($2, FUN);
+        if(fun_idx == NO_INDEX){
+          fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, interface_idx);
+        }
+        else {
+          if (get_parent_index(fun_idx) == interface_idx) err ("redefinition of function '%s' in interface '%s'", $2,get_name(interface_idx));
+          else fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, interface_idx);
+        }
+  }
+   _LPAREN parameter _RPAREN _SEMICOLON
   ;
   
 function
   : _TYPE _ID
       {
-        fun_idx = lookup_symbol($2, FUN);
-        if(fun_idx == NO_INDEX)
-          fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR);
-        else 
-          err("redefinition of function '%s'", $2);
+        if (defining_class == 1) 
+        {
+          fun_idx = lookup_symbol($2, FUN);
+          if(fun_idx == NO_INDEX)
+            fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, class_idx);
+          else {
+            if (get_parent_index(fun_idx) == class_idx) {err ("redefinition of function '%s' in class '%s'", $2, get_name(class_idx));}
+            else {fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, class_idx);}
+          }
+        }
+        else {
+          fun_idx = lookup_symbol($2, FUN);
+          if(fun_idx == NO_INDEX)
+            fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, NO_ATR);
+          else 
+            err("redefinition of function '%s'", $2);
+        }
 
         code("\n%s:", $2);
         code("\n\t\tPUSH\t%%14");
@@ -135,7 +234,7 @@ parameter
 
   | _TYPE _ID
       {
-        insert_symbol($2, PAR, $1, 1, NO_ATR);
+        insert_symbol($2, PAR, $1, 1, NO_ATR, NO_ATR);
         set_atr1(fun_idx, 1);
         set_atr2(fun_idx, $1);
       }
@@ -160,7 +259,7 @@ variable
   : _TYPE _ID _SEMICOLON
       {
         if(lookup_symbol($2, VAR|PAR) == NO_INDEX)
-           insert_symbol($2, VAR, $1, ++var_num, NO_ATR);
+           insert_symbol($2, VAR, $1, ++var_num, NO_ATR, NO_ATR);
         else 
            err("redefinition of '%s'", $2);
       }

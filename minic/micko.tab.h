@@ -56,7 +56,9 @@
      _RELOP = 272,
      _CLASS = 273,
      _INTERFACE = 274,
-     ONLY_IF = 275
+     _COMMA = 275,
+     _IMPLEMENTS = 276,
+     ONLY_IF = 277
    };
 #endif
 /* Tokens.  */
@@ -77,20 +79,22 @@
 #define _RELOP 272
 #define _CLASS 273
 #define _INTERFACE 274
-#define ONLY_IF 275
+#define _COMMA 275
+#define _IMPLEMENTS 276
+#define ONLY_IF 277
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 25 "micko.y"
+#line 33 "micko.y"
 {
   int i;
   char *s;
 }
 /* Line 1529 of yacc.c.  */
-#line 94 "micko.tab.h"
+#line 98 "micko.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

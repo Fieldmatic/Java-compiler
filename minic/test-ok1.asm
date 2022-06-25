@@ -1,4 +1,30 @@
 
+@?_body:
+@?_body:
+funkcija:
+		PUSH	%14
+		MOV 	%15,%14
+		SUBS	%15,$12,%15
+@funkcija_body:
+		MOV 	$5,-12(%14)
+		MOV 	$5,%13
+		JMP 	@funkcija_exit
+@funkcija_exit:
+		MOV 	%14,%15
+		POP 	%14
+		RET
+testic:
+		PUSH	%14
+		MOV 	%15,%14
+		SUBS	%15,$12,%15
+@testic_body:
+		MOV 	$5,-12(%14)
+		MOV 	-12(%14),%13
+		JMP 	@testic_exit
+@testic_exit:
+		MOV 	%14,%15
+		POP 	%14
+		RET
 funkcija:
 		PUSH	%14
 		MOV 	%15,%14
@@ -16,34 +42,10 @@ testic:
 		MOV 	%15,%14
 		SUBS	%15,$8,%15
 @testic_body:
-		MOV 	$5,-8(%14)
-		MOV 	-8(%14),%13
+		MOV 	$0,-8(%14)
+		MOV 	$5,%13
 		JMP 	@testic_exit
 @testic_exit:
-		MOV 	%14,%15
-		POP 	%14
-		RET
-funkcija1:
-		PUSH	%14
-		MOV 	%15,%14
-		SUBS	%15,$8,%15
-@funkcija1_body:
-		MOV 	$0,-8(%14)
-		MOV 	$5,%13
-		JMP 	@funkcija1_exit
-@funkcija1_exit:
-		MOV 	%14,%15
-		POP 	%14
-		RET
-testic1:
-		PUSH	%14
-		MOV 	%15,%14
-		SUBS	%15,$8,%15
-@testic1_body:
-		MOV 	$0,-8(%14)
-		MOV 	$5,%13
-		JMP 	@testic1_exit
-@testic1_exit:
 		MOV 	%14,%15
 		POP 	%14
 		RET
