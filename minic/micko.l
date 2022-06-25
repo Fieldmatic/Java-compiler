@@ -15,6 +15,8 @@
 "if"                 { return _IF; }
 "else"               { return _ELSE; }
 "return"             { return _RETURN; }
+"class"              { return _CLASS;}
+"interface"          { return _INTERFACE;}
 
 "("                  { return _LPAREN; }
 ")"                  { return _RPAREN; }

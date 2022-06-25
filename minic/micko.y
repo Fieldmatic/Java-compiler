@@ -42,6 +42,8 @@
 %token _SEMICOLON
 %token <i> _AROP
 %token <i> _RELOP
+%token _CLASS
+%token _INTERFACE
 
 %type <i> num_exp exp literal
 %type <i> function_call argument rel_exp if_part
@@ -52,18 +54,56 @@
 %%
 
 program
-  : function_list
-      {  
-        if(lookup_symbol("main", FUN) == NO_INDEX)
-          err("undefined reference to 'main'");
-      }
+  : program_architecture
+    {  
+      if(lookup_symbol("main", FUN) == NO_INDEX)
+        err("undefined reference to 'main'");
+    }
   ;
 
-function_list
+program_architecture
+  : structure_list
+  | program_architecture structure_list
+  ;
+  
+structure_list
   : function
-  | function_list function
+  | class
+  | interface
   ;
 
+interface
+  : _INTERFACE _ID _LBRACKET interface_items _RBRACKET
+  ;
+
+interface_items
+  :
+  | interface_items interface_function
+  ;
+
+class
+  : _CLASS _ID _LBRACKET class_items _RBRACKET
+  ;
+
+class_items
+  : 
+  | class_items class_item
+  ;
+
+class_item
+  : function
+  | class_attribute
+  ;
+
+class_attribute
+  : _TYPE _ID _SEMICOLON
+  ;
+
+
+interface_function
+  : _TYPE _ID _LPAREN parameter _RPAREN _SEMICOLON
+  ;
+  
 function
   : _TYPE _ID
       {
