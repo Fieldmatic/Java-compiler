@@ -18,6 +18,7 @@
 "class"              { return _CLASS;}
 "interface"          { return _INTERFACE;}
 "implements"         { return _IMPLEMENTS;}
+"new"                { return  _NEW;}
 
 "("                  { return _LPAREN; }
 ")"                  { return _RPAREN; }

@@ -54,6 +54,7 @@
 %token _INTERFACE
 %token _COMMA
 %token _IMPLEMENTS
+%token _NEW
 
 %type <i> num_exp exp literal
 %type <i> function_call argument rel_exp if_part
@@ -287,7 +288,7 @@ variable_list
 variable
   : _TYPE _ID _SEMICOLON
       {
-        int var_idx = lookup_symbol($2, VAR|PAR);
+        int var_idx = lookup_symbol($2, VAR|PAR|OBJ);
         if(var_idx == NO_INDEX)
            insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
         else {
@@ -307,16 +308,40 @@ statement
   | assignment_statement
   | if_statement
   | return_statement
+  | object_assignment_statement
   ;
 
 compound_statement
   : _LBRACKET statement_list _RBRACKET
   ;
 
+object_assignment_statement
+  : _ID _ID
+  {
+    int obj_idx = lookup_symbol($2, VAR|PAR|OBJ);
+    if(obj_idx == NO_INDEX)
+        insert_symbol($2, OBJ, NO_TYPE, class_idx, NO_ATR, fun_idx);
+    else {
+        if (get_parent_index(obj_idx) != fun_idx) insert_symbol($2, OBJ, NO_TYPE, class_idx, NO_ATR, fun_idx);
+        else err("redefinition of '%s' in function '%s'", $2, get_name(fun_idx));
+    }
+  }
+   _ASSIGN _NEW _ID
+   {
+    int class_idx = lookup_symbol($6,CLASS);
+    if (lookup_symbol($1,CLASS) == NO_INDEX) err("Definition for class '%s' not found! ", $1);
+    else if (class_idx == NO_INDEX) err("Definition for class '%s' not found! ", $6);
+    else if (get_name(class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(class_idx));
+
+   } 
+   _LPAREN parameter_list _RPAREN _SEMICOLON { print_symtab();}
+  ;
+
+
 assignment_statement
   : _ID _ASSIGN num_exp _SEMICOLON
       {
-        int idx = lookup_symbol($1, VAR|PAR);
+        int idx = lookup_symbol($1, VAR|PAR|OBJ);
         if(idx == NO_INDEX)
           err("invalid lvalue '%s' in assignment", $1);
         else
@@ -352,7 +377,7 @@ exp
 
   | _ID
       {
-        $$ = lookup_symbol($1, VAR|PAR);
+        $$ = lookup_symbol($1, VAR|PAR|OBJ);
         if($$ == NO_INDEX)
           err("'%s' undeclared", $1);
       }
