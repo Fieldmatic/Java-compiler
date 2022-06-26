@@ -15,15 +15,9 @@ class Person implements testInterface {
 
     Person(){}
 
-    Person(int parametar) {
-        int x;
-        int y;
-        x=z;
-        a=x;
-        b=5;
-    }
-
-    Person(int parametar, int kara) {
+    Person(int a, int f) {
+        a=a;
+        b=f;
     }
 
     int dodaj (int x, int z, int f) {
@@ -55,5 +49,11 @@ class Person implements testInterface {
 
 int main() {
     int o;
+    int z;
+    unsigned f;
+    o=5;
+    z=3;
+    f=5u;
     Person p = new Person();
+    Person x = new Person (5,4);
 }

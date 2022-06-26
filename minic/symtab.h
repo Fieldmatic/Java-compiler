@@ -30,6 +30,8 @@ int insert_literal(char *str, unsigned type);
 // Vraca indeks pronadjenog simbola ili vraca -1.
 int lookup_symbol(char *name, unsigned kind);
 
+int lookup_symbol_parent(char *name, unsigned kind, int parent_idx);
+
 // vraca 1 ukoliko klasa implementira metodu sa istim imenom i povratnom vrednosti ili vraca -1
 int function_exists_in_class(int function_index, int class_idx);
 
@@ -37,6 +39,9 @@ int function_exists_in_class(int function_index, int class_idx);
 int* lookup_interface_functions(int interface_idx);
 // validacija poklapanja parametara funkcije, vraca 1 ako je sve u redu, -1 ukoliko broj parametara nije isti, -2 ukoliko se parametri ne poklapaju
 int function_params_validation(int function1_index, int function2_index);
+
+int find_valid_constructor(int number_of_args, int class_idx);
+int constructor_call_valid(int number_of_args, int constructor_idx);
 
 int constructor_exists_in_class(int constructor_idx, int class_idx);
 

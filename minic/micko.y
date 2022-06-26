@@ -29,6 +29,7 @@
   int attr_idx = -1;
   int constructor_idx = -1;
   int defining_constructor = 0;
+  int new_object_argument_counter = 0;
 
 %}
 
@@ -353,6 +354,7 @@ compound_statement
 object_assignment_statement
   : _ID _ID
   {
+    new_object_argument_counter = 0;
     int obj_idx = lookup_symbol($2, VAR|PAR|OBJ);
     if(obj_idx == NO_INDEX)
         insert_symbol($2, OBJ, NO_TYPE, class_idx, NO_ATR, fun_idx);
@@ -369,7 +371,17 @@ object_assignment_statement
     else if (get_name(class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(class_idx));
 
    } 
-   _LPAREN parameter_list _RPAREN _SEMICOLON
+   _LPAREN new_object_arguments
+   {
+    int class_idx = lookup_symbol($6,CLASS);
+    print_symtab();
+    printf("%d",new_object_argument_counter);
+    printf("%d",class_idx);
+    if (find_valid_constructor(new_object_argument_counter,class_idx) == -1) err("No valid constructors found with same parameters!");
+    else clear_symbols(get_last_element()-new_object_argument_counter+1);
+    print_symtab();
+   }
+    _RPAREN _SEMICOLON {new_object_argument_counter = 0;}
   ;
 
 
@@ -463,6 +475,31 @@ function_call
         set_type(FUN_REG, get_type(fcall_idx));
         $$ = FUN_REG;
       }
+  ;
+
+new_object_arguments
+  :
+  | new_object_argument
+  | new_object_arguments _COMMA new_object_argument
+  ;
+
+new_object_argument
+  : _ID {
+    int var_idx = lookup_symbol_parent($1, VAR|PAR, fun_idx);
+    if (var_idx == NO_INDEX) err("Argument '%s' not declared.", $1);
+    else {
+      insert_symbol($1, get_kind(var_idx), get_type(var_idx), NO_ATR, NO_ATR, fun_idx);
+      new_object_argument_counter++;
+    }
+  }
+  | _INT_NUMBER
+    { insert_symbol($1, LIT, INT, NO_ATR, NO_ATR, fun_idx); 
+      new_object_argument_counter++;}
+
+  | _UINT_NUMBER
+    { insert_symbol($1, LIT, UINT, NO_ATR, NO_ATR, fun_idx); 
+      new_object_argument_counter++;}
+
   ;
 
 argument
