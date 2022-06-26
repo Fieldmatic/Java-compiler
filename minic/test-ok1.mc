@@ -5,15 +5,25 @@ interface testInterface {
 }
 
 class osoba {
-
+    int l;
+    int z;
 }
 
 class Person implements testInterface {
     int a;
     int b;
 
+    Person(){}
 
     Person(int parametar) {
+        int x;
+        int y;
+        x=z;
+        a=x;
+        b=5;
+    }
+
+    Person(int parametar, int kara) {
     }
 
     int dodaj (int x, int z, int f) {
@@ -43,8 +53,7 @@ class Person implements testInterface {
 
 }
 
-int main(int x) {
+int main() {
     int o;
-    o = x;
     Person p = new Person();
 }

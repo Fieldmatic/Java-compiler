@@ -38,6 +38,8 @@ int* lookup_interface_functions(int interface_idx);
 // validacija poklapanja parametara funkcije, vraca 1 ako je sve u redu, -1 ukoliko broj parametara nije isti, -2 ukoliko se parametri ne poklapaju
 int function_params_validation(int function1_index, int function2_index);
 
+int constructor_exists_in_class(int constructor_idx, int class_idx);
+
 // set i get metode za polja tabele simbola
 void     set_name(int index, char *name);
 char*    get_name(int index);

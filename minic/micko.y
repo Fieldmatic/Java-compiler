@@ -27,6 +27,8 @@
   int interface_idx = -1;
   int defining_interface = 0;
   int attr_idx = -1;
+  int constructor_idx = -1;
+  int defining_constructor = 0;
 
 %}
 
@@ -129,7 +131,6 @@ class
   }
   _LBRACKET class_items _RBRACKET 
     { 
-      print_symtab();
       int interfaceId = lookup_symbol($4, INTR);
       int *interface_function_indexes;
       interface_function_indexes = lookup_interface_functions(interfaceId);
@@ -168,25 +169,41 @@ class_item
   ;
 
 constructor
-  : _ID _LPAREN
+  : _ID _LPAREN {defining_constructor = 1;}
   {
+    if (!defining_class) err("You cant define constructor outside of class!");
     char* className = get_name(class_idx);
     char* constructorName = $1;
     if (strcmp(className, constructorName) != 0) err("constructor name '%s' not valid for class '%s'",$1, get_name(class_idx));
-  } constructor_parameters _RPAREN body
+    constructor_idx = insert_symbol($1, FUN, CONSTR, NO_ATR, NO_ATR, class_idx);
+  } constructor_parameter_list
+  {
+    if (constructor_exists_in_class(constructor_idx, class_idx) == 1) {
+      err("constructor '%s' with same parameters already exists in class '%s' !",$1, get_name(class_idx));
+    }
+    
+  } _RPAREN body     {print_symtab();
+                     defining_constructor = 0;}
   ;
 
-constructor_parameters
-  : //empty is possibility
-  | constructor_parameter_list
-
 constructor_parameter_list
-  : constructor_parameter
+  : /*empty */
+  | constructor_parameter
   | constructor_parameter_list _COMMA constructor_parameter
   ;
 
 constructor_parameter
   : _TYPE _ID
+    {
+        int parameter_idx = lookup_symbol($2, PAR);
+        if (parameter_idx == NO_INDEX) insert_symbol($2, PAR, $1, 1, NO_ATR, constructor_idx);
+        else {
+          if (get_parent_index(parameter_idx) != constructor_idx) insert_symbol($2, PAR, $1, 1, NO_ATR, constructor_idx);
+          else err("Redefinition of parameter '%s' in constructor '%s'", $2, get_name(constructor_idx));
+        }
+        set_atr1(constructor_idx, get_atr1(constructor_idx) + 1);
+        set_atr2(constructor_idx, $1);
+    }
   ;
 
 class_attribute
@@ -264,7 +281,14 @@ parameter_list
 parameter
   : _TYPE _ID
       {
-        insert_symbol($2, PAR, $1, 1, NO_ATR, fun_idx);
+        int parameter_idx = lookup_symbol($2, PAR);
+        if (parameter_idx == NO_INDEX) {
+          insert_symbol($2, PAR, $1, 1, NO_ATR, fun_idx);
+        }
+        else {
+          if (get_parent_index(parameter_idx) != fun_idx) insert_symbol($2, PAR, $1, 1, NO_ATR, fun_idx);
+          else err("Redefinition of parameter '%s' in function '%s'", $2, get_name(fun_idx));
+        }
         set_atr1(fun_idx, get_atr1(fun_idx) + 1);
         set_atr2(fun_idx, $1);
       }
@@ -288,12 +312,23 @@ variable_list
 variable
   : _TYPE _ID _SEMICOLON
       {
-        int var_idx = lookup_symbol($2, VAR|PAR|OBJ);
-        if(var_idx == NO_INDEX)
-           insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
-        else {
-           if (get_parent_index(var_idx) != fun_idx) insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
-           else err("redefinition of '%s' in function '%s'", $2, get_name(fun_idx));
+        if (defining_constructor == 1) {
+          int var_idx = lookup_symbol($2, VAR|PAR|OBJ);
+          if(var_idx == NO_INDEX)
+            insert_symbol($2, VAR, $1, ++var_num, NO_ATR, constructor_idx);
+          else {
+            if (get_parent_index(var_idx) != constructor_idx) insert_symbol($2, VAR, $1, ++var_num, NO_ATR, constructor_idx);
+            else err("redefinition of '%s' in constructor '%s'", $2, get_name(constructor_idx));
+          }
+        }
+        else{
+          int var_idx = lookup_symbol($2, VAR|PAR|OBJ);
+          if(var_idx == NO_INDEX)
+            insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
+          else {
+            if (get_parent_index(var_idx) != fun_idx) insert_symbol($2, VAR, $1, ++var_num, NO_ATR, fun_idx);
+            else err("redefinition of '%s' in function '%s'", $2, get_name(fun_idx));
+          }
         }
       }
   ;
@@ -334,20 +369,32 @@ object_assignment_statement
     else if (get_name(class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(class_idx));
 
    } 
-   _LPAREN parameter_list _RPAREN _SEMICOLON { print_symtab();}
+   _LPAREN parameter_list _RPAREN _SEMICOLON
   ;
 
 
 assignment_statement
   : _ID _ASSIGN num_exp _SEMICOLON
       {
-        int idx = lookup_symbol($1, VAR|PAR|OBJ);
-        if(idx == NO_INDEX)
-          err("invalid lvalue '%s' in assignment", $1);
-        else
-          if(get_type(idx) != get_type($3))
-            err("incompatible types in assignment");
-        gen_mov($3, idx);
+        if (defining_constructor == 1) {
+          int idx = lookup_symbol($1, VAR|PAR|OBJ|ATTR);
+          if (get_kind(idx) == ATTR && get_parent_index(idx) != class_idx) err("You cant assign value to a non member attribute '%s'! from class '%s'", get_name(idx), get_name(get_parent_index(idx)));
+          if (idx == NO_INDEX)
+            err("invalid lvalue '%s' in assignment", $1);
+          else
+            if(get_type(idx) != get_type($3))
+              err("incompatible types in assignment");
+          gen_mov($3, idx);
+        }
+        else {
+          int idx = lookup_symbol($1, VAR|PAR|OBJ);
+          if(idx == NO_INDEX)
+            err("invalid lvalue '%s' in assignment", $1);
+          else
+            if(get_type(idx) != get_type($3))
+              err("incompatible types in assignment");
+          gen_mov($3, idx);
+        }
       }
   ;
 

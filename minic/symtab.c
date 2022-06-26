@@ -99,6 +99,19 @@ int* lookup_function_params(int function_idx, int size) {
     return param_indexes;
 }
 
+int constructor_exists_in_class(int constructor_idx, int class_idx){
+  int i;
+  for(i = first_empty - 1; i > class_idx; i--) {
+      if (symbol_table[i].parent_index == class_idx 
+          && strcmp(symbol_table[i].name, symbol_table[constructor_idx].name) == 0
+          && symbol_table[i].type == symbol_table[constructor_idx].type && i != constructor_idx)
+          {
+            return function_params_validation(constructor_idx,i);
+          }
+  }
+  return -1;
+}
+
 int function_exists_in_class(int function_index, int class_idx) {
     int i;
     for(i = first_empty - 1; i > FUN_REG; i--) {

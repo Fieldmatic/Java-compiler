@@ -1,8 +1,16 @@
 
 @oduzmi_body:
+		SUBS	%15,$8,%15
+@oduzmi_body:
+		MOV 	8(%14),-4(%14)
+		MOV 	-4(%14),a
+		MOV 	$5,b
+		SUBS	%15,$8,%15
+@oduzmi_body:
 dodaj:
 		PUSH	%14
 		MOV 	%15,%14
+		SUBS	%15,$8,%15
 @dodaj_body:
 oduzmi:
 		PUSH	%14
@@ -29,4 +37,3 @@ main:
 		MOV 	%15,%14
 		SUBS	%15,$4,%15
 @main_body:
-		MOV 	8(%14),-4(%14)
