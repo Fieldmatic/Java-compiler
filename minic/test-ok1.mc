@@ -4,7 +4,14 @@ interface testInterface {
     int oduzmi (int y, int x, int f);
 }
 
+
+class fkfk{
+    fkfk(){}
+}
+
 class osoba {
+    osoba(){}
+    fkfk f = new fkfk();
     int l;
     int z;
 }
@@ -12,6 +19,8 @@ class osoba {
 class Person implements testInterface {
     int a;
     int b;
+    osoba osobica = new osoba();
+    fkfk fk = new fkfk();
 
     Person(){}
 
@@ -47,6 +56,10 @@ class Person implements testInterface {
 
 }
 
+int probaj(){
+    return 1;
+}
+
 int main() {
     int o;
     int z;
@@ -56,6 +69,8 @@ int main() {
     f=5u;
     Person p = new Person();
     Person x = new Person (5,4);
-    o= p.a;
+    osoba osoba = new osoba();
+    osoba = x.osobica;
+    o = x.funkcija(1,2,0);
 
 }

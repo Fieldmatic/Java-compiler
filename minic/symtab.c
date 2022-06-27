@@ -122,13 +122,13 @@ int constructor_exists_in_class(int constructor_idx, int class_idx){
   return -1;
 }
 
-int constructor_call_valid(int number_of_args, int constructor_idx){
+int call_valid(int number_of_args, int fun_idx){
+  if (get_atr1(fun_idx) != number_of_args) return -1;
   int argStart = first_empty-number_of_args;
-  int constructorArgStart = constructor_idx+1;
+  int funParStart = fun_idx+1;
   bool valid = TRUE;
   for (int i=0; i < number_of_args; i++){
-      printf("BBBBB '%d'", argStart+i);
-      if (get_type(argStart+i) != get_type(constructorArgStart+i)) {
+      if (get_type(argStart+i) != get_type(funParStart+i)) {
         valid = FALSE;
         break;
       }
@@ -143,7 +143,7 @@ int find_valid_constructor(int number_of_args, int class_idx) {
       if (symbol_table[i].parent_index == class_idx 
           && symbol_table[i].type == CONSTR && symbol_table[i].atr1 == number_of_args)
           {
-            int response = constructor_call_valid(number_of_args,i);
+            int response = call_valid(number_of_args,i);
             if (response == 1) return 1;
           }
   }

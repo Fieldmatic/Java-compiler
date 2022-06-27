@@ -41,7 +41,7 @@ int* lookup_interface_functions(int interface_idx);
 int function_params_validation(int function1_index, int function2_index);
 
 int find_valid_constructor(int number_of_args, int class_idx);
-int constructor_call_valid(int number_of_args, int constructor_idx);
+int call_valid(int number_of_args, int fun_idx);
 
 int constructor_exists_in_class(int constructor_idx, int class_idx);
 

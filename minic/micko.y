@@ -29,7 +29,7 @@
   int attr_idx = -1;
   int constructor_idx = -1;
   int defining_constructor = 0;
-  int new_object_argument_counter = 0;
+  int argument_counter = 0;
   int obj_idx = -1;
 %}
 
@@ -184,7 +184,7 @@ constructor
       err("constructor '%s' with same parameters already exists in class '%s' !",$1, get_name(class_idx));
     }
     
-  } _RPAREN body     {print_symtab();
+  } _RPAREN body     {
                      defining_constructor = 0;}
   ;
 
@@ -219,6 +219,7 @@ class_attribute
        else attr_idx = insert_symbol($2,ATTR,$1,NO_ATR,NO_ATR,class_idx);
     }
   }_SEMICOLON
+  | object_assignment_statement
   ;
 
 
@@ -355,34 +356,43 @@ compound_statement
 object_assignment_statement
   : _ID _ID
   {
-    new_object_argument_counter = 0;
-    int obj_idx = lookup_symbol($2, VAR|PAR|OBJ);
-    if(obj_idx == NO_INDEX)
-        insert_symbol($2, OBJ, NO_TYPE, class_idx, NO_ATR, fun_idx);
-    else {
-        if (get_parent_index(obj_idx) != fun_idx) insert_symbol($2, OBJ, NO_TYPE, class_idx, NO_ATR, fun_idx);
-        else err("redefinition of '%s' in function '%s'", $2, get_name(fun_idx));
+    argument_counter = 0;
+    int desired_class_idx = lookup_symbol($1, CLASS);
+    if (desired_class_idx == NO_INDEX) err ("Class with name '%s' isnt defined!", $1);
+    else{
+      int obj_idx = lookup_symbol($2, VAR|PAR|OBJ);
+      if (defining_class == 1) {
+        if(obj_idx == NO_INDEX)
+          insert_symbol($2, OBJ, NO_TYPE, desired_class_idx, NO_ATR, class_idx);
+        else {
+          if (get_parent_index(obj_idx) != class_idx) insert_symbol($2, OBJ, NO_TYPE, desired_class_idx, NO_ATR, class_idx);
+          else err("redefinition of '%s' in class '%s'", $2, get_name(class_idx));
+        }
+     }
+      else{
+        if(obj_idx == NO_INDEX)
+            insert_symbol($2, OBJ, NO_TYPE, desired_class_idx, NO_ATR, fun_idx);
+        else {
+            if (get_parent_index(obj_idx) != fun_idx) insert_symbol($2, OBJ, NO_TYPE, desired_class_idx, NO_ATR, fun_idx);
+            else err("redefinition of '%s' in function '%s'", $2, get_name(fun_idx));
+        }
+      }
     }
   }
    _ASSIGN _NEW _ID
    {
-    int class_idx = lookup_symbol($6,CLASS);
-    if (lookup_symbol($1,CLASS) == NO_INDEX) err("Definition for class '%s' not found! ", $1);
-    else if (class_idx == NO_INDEX) err("Definition for class '%s' not found! ", $6);
-    else if (get_name(class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(class_idx));
+    int new_class_idx = lookup_symbol($6,CLASS);
+    if (new_class_idx == NO_INDEX) err("Definition for class '%s' not found! ", $6);
+    else if (get_name(new_class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(class_idx));
 
    } 
    _LPAREN new_object_arguments
    {
-    int class_idx = lookup_symbol($6,CLASS);
-    print_symtab();
-    printf("%d",new_object_argument_counter);
-    printf("%d",class_idx);
-    if (find_valid_constructor(new_object_argument_counter,class_idx) == -1) err("No valid constructors found with same parameters!");
-    else clear_symbols(get_last_element()-new_object_argument_counter+1);
-    print_symtab();
+    int new_class_idx = lookup_symbol($6,CLASS);
+    if (find_valid_constructor(argument_counter,new_class_idx) == -1) err("No valid constructors found with same parameters!");
+    else clear_symbols(get_last_element()-argument_counter+1);
    }
-    _RPAREN _SEMICOLON {new_object_argument_counter = 0;}
+    _RPAREN _SEMICOLON {argument_counter = 0;}
   ;
 
 
@@ -404,8 +414,13 @@ assignment_statement
           if(idx == NO_INDEX)
             err("invalid lvalue '%s' in assignment", $1);
           else
-            if(get_type(idx) != get_type($3))
-              err("incompatible types in assignment");
+            if (get_kind(idx) == OBJ) {
+              if (get_atr1(idx) != get_atr1($3)) err("invalid assignment, '%s' and '%s' are not of same object type", get_name($3), get_name(idx));
+            }
+            else{
+              if(get_type(idx) != get_type($3))
+                err("incompatible types in assignment");
+            }
           gen_mov($3, idx);
         }
       }
@@ -414,11 +429,16 @@ assignment_statement
     obj_idx = lookup_symbol_parent($1, OBJ,fun_idx);
     if (obj_idx == NO_INDEX) err ("Object with name '%s' doesnt exist!", $1);
   }_ID{
-    attr_idx = lookup_symbol_parent($4, ATTR, get_atr1(obj_idx));
+    attr_idx = lookup_symbol_parent($4, ATTR|OBJ, get_atr1(obj_idx));
     if (attr_idx == NO_INDEX) err ("Object of class '%s' doesn't have an attribute member '%s' ",get_name(get_atr1(obj_idx)), $4);
   }_ASSIGN num_exp
   {
-    if (get_type($7) != get_type(attr_idx)) err("invalid operands, '%s' and '%s' are not of same type", get_name($7), get_name(attr_idx));
+    if (get_kind(attr_idx) == OBJ) {
+      if (get_atr1($7) != get_atr1(attr_idx)) err("invalid assignment, '%s' and '%s' are not of same object type", get_name($7), get_name(attr_idx));
+    }
+    else{
+      if (get_type($7) != get_type(attr_idx)) err("invalid operands, '%s' and '%s' are not of same type", get_name($7), get_name(attr_idx));
+    }
   }_SEMICOLON
   ;
 
@@ -464,7 +484,7 @@ exp
     {
     int object_idx = lookup_symbol_parent($1, OBJ,fun_idx);
     if (object_idx == NO_INDEX) err ("Object with name '%s' doesnt exist!", $1);
-    $$ = lookup_symbol_parent($3, ATTR, get_atr1(object_idx));
+    $$ = lookup_symbol_parent($3, ATTR|OBJ, get_atr1(object_idx));
     if ($$ == NO_INDEX) err ("Object of class '%s' doesn't have an attribute member '%s' ",get_name(get_atr1(object_idx)), $3);
 
     }
@@ -495,6 +515,21 @@ function_call
         set_type(FUN_REG, get_type(fcall_idx));
         $$ = FUN_REG;
       }
+  | _ID _DOT _ID
+  {
+    obj_idx = lookup_symbol_parent($1, OBJ,fun_idx);
+    if (obj_idx == NO_INDEX) err ("Object with name '%s' doesnt exist!", $1);
+    fcall_idx = lookup_symbol_parent($3, FUN, get_atr1(obj_idx));
+    if (fcall_idx == NO_INDEX) err ("Object of class '%s' doesn't have an method with name '%s' ",get_name(get_atr1(obj_idx)), $3);
+  }
+  _LPAREN new_object_arguments _RPAREN
+  {
+    if (call_valid(argument_counter,fcall_idx) == -1) err("Invalid arguments for function call '%s'!", get_name(fcall_idx));
+    else clear_symbols(get_last_element()-argument_counter+1);
+    set_type(FUN_REG, get_type(fcall_idx));
+    $$ = FUN_REG;
+    print_symtab();
+  }
   ;
 
 new_object_arguments
@@ -509,16 +544,16 @@ new_object_argument
     if (var_idx == NO_INDEX) err("Argument '%s' not declared.", $1);
     else {
       insert_symbol($1, get_kind(var_idx), get_type(var_idx), NO_ATR, NO_ATR, fun_idx);
-      new_object_argument_counter++;
+      argument_counter++;
     }
   }
   | _INT_NUMBER
     { insert_symbol($1, LIT, INT, NO_ATR, NO_ATR, fun_idx); 
-      new_object_argument_counter++;}
+      argument_counter++;}
 
   | _UINT_NUMBER
     { insert_symbol($1, LIT, UINT, NO_ATR, NO_ATR, fun_idx); 
-      new_object_argument_counter++;}
+      argument_counter++;}
 
   ;
 
