@@ -59,7 +59,8 @@
      _COMMA = 275,
      _IMPLEMENTS = 276,
      _NEW = 277,
-     ONLY_IF = 278
+     _DOT = 278,
+     ONLY_IF = 279
    };
 #endif
 /* Tokens.  */
@@ -83,7 +84,8 @@
 #define _COMMA 275
 #define _IMPLEMENTS 276
 #define _NEW 277
-#define ONLY_IF 278
+#define _DOT 278
+#define ONLY_IF 279
 
 
 
@@ -96,7 +98,7 @@ typedef union YYSTYPE
   char *s;
 }
 /* Line 1529 of yacc.c.  */
-#line 100 "micko.tab.h"
+#line 102 "micko.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

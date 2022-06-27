@@ -30,7 +30,7 @@
   int constructor_idx = -1;
   int defining_constructor = 0;
   int new_object_argument_counter = 0;
-
+  int obj_idx = -1;
 %}
 
 %union {
@@ -58,6 +58,7 @@
 %token _COMMA
 %token _IMPLEMENTS
 %token _NEW
+%token _DOT
 
 %type <i> num_exp exp literal
 %type <i> function_call argument rel_exp if_part
@@ -408,6 +409,17 @@ assignment_statement
           gen_mov($3, idx);
         }
       }
+  | _ID _DOT
+  {
+    obj_idx = lookup_symbol_parent($1, OBJ,fun_idx);
+    if (obj_idx == NO_INDEX) err ("Object with name '%s' doesnt exist!", $1);
+  }_ID{
+    attr_idx = lookup_symbol_parent($4, ATTR, get_atr1(obj_idx));
+    if (attr_idx == NO_INDEX) err ("Object of class '%s' doesn't have an attribute member '%s' ",get_name(get_atr1(obj_idx)), $4);
+  }_ASSIGN num_exp
+  {
+    if (get_type($7) != get_type(attr_idx)) err("invalid operands, '%s' and '%s' are not of same type", get_name($7), get_name(attr_idx));
+  }_SEMICOLON
   ;
 
 num_exp
@@ -448,6 +460,14 @@ exp
   
   | _LPAREN num_exp _RPAREN
       { $$ = $2; }
+  | _ID _DOT _ID
+    {
+    int object_idx = lookup_symbol_parent($1, OBJ,fun_idx);
+    if (object_idx == NO_INDEX) err ("Object with name '%s' doesnt exist!", $1);
+    $$ = lookup_symbol_parent($3, ATTR, get_atr1(object_idx));
+    if ($$ == NO_INDEX) err ("Object of class '%s' doesn't have an attribute member '%s' ",get_name(get_atr1(object_idx)), $3);
+
+    }
   ;
 
 literal

@@ -35,7 +35,7 @@ class Person implements testInterface {
         y=5;
         return 5;
     }
-    int z;
+    unsigned z;
     int testic(){
         int a;
         int b;
@@ -56,4 +56,6 @@ int main() {
     f=5u;
     Person p = new Person();
     Person x = new Person (5,4);
+    o= p.a;
+
 }
