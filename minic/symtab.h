@@ -39,6 +39,7 @@ int function_exists_in_class(int function_index, int class_idx);
 int* lookup_interface_functions(int interface_idx);
 // validacija poklapanja parametara funkcije, vraca 1 ako je sve u redu, -1 ukoliko broj parametara nije isti, -2 ukoliko se parametri ne poklapaju
 int function_params_validation(int function1_index, int function2_index);
+int constructor_params_validation(int function1_index, int function2_index);
 
 int find_valid_constructor(int number_of_args, int class_idx);
 int call_valid(int number_of_args, int fun_idx);

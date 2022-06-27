@@ -1812,7 +1812,7 @@ yyreduce:
     {
     int new_class_idx = lookup_symbol((yyvsp[(6) - (6)].s),CLASS);
     if (new_class_idx == NO_INDEX) err("Definition for class '%s' not found! ", (yyvsp[(6) - (6)].s));
-    else if (get_name(new_class_idx) != get_name(lookup_symbol((yyvsp[(1) - (6)].s),CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol((yyvsp[(1) - (6)].s),CLASS)), get_name(class_idx));
+    else if (get_name(new_class_idx) != get_name(lookup_symbol((yyvsp[(1) - (6)].s),CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol((yyvsp[(1) - (6)].s),CLASS)), get_name(new_class_idx));
 
    ;}
     break;

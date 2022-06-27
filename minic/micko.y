@@ -383,7 +383,7 @@ object_assignment_statement
    {
     int new_class_idx = lookup_symbol($6,CLASS);
     if (new_class_idx == NO_INDEX) err("Definition for class '%s' not found! ", $6);
-    else if (get_name(new_class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(class_idx));
+    else if (get_name(new_class_idx) != get_name(lookup_symbol($1,CLASS))) err("You cant define object of type '%s' with class of type '%s'",get_name(lookup_symbol($1,CLASS)), get_name(new_class_idx));
 
    } 
    _LPAREN new_object_arguments

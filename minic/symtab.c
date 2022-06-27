@@ -101,7 +101,7 @@ int* lookup_function_params(int function_idx, int size) {
     int param_index = 0;
     int i;
     for (i = function_idx+3; i > function_idx; i--){
-      if (symbol_table[i].parent_index == function_idx) {
+      if (symbol_table[i].parent_index == function_idx && symbol_table[i].kind == PAR) {
         param_indexes[param_index] = i;
         param_index++;
       }
@@ -116,7 +116,7 @@ int constructor_exists_in_class(int constructor_idx, int class_idx){
           && strcmp(symbol_table[i].name, symbol_table[constructor_idx].name) == 0
           && symbol_table[i].type == symbol_table[constructor_idx].type && i != constructor_idx)
           {
-            return function_params_validation(constructor_idx,i);
+            return constructor_params_validation(constructor_idx,i);
           }
   }
   return -1;
@@ -164,6 +164,27 @@ int function_exists_in_class(int function_index, int class_idx) {
                && strcmp(symbol_table[i].name, symbol_table[function_index].name) == 0) return -3;
     }
     return -4;
+}
+
+int constructor_params_validation(int function1_index, int function2_index) {
+      int size1 = get_atr1(function1_index);
+      int size2 = get_atr1(function2_index);
+      if (size1 != size2) return -1;
+      int *function1_param_indexes = lookup_function_params(function1_index, size1);
+      int *function2_param_indexes = lookup_function_params(function2_index, size2);
+      for (int i = 0; i < size1; i++){
+        bool found = FALSE;
+        for (int j = 0; j < size2; j++){
+          if (symbol_table[function1_param_indexes[i]].type == symbol_table[function2_param_indexes[j]].type)
+          {
+            found = TRUE;
+            break;
+          }
+        }
+        if (!found) return -2;
+      }
+      return 1;
+
 }
 
 int function_params_validation(int function1_index, int function2_index) {
