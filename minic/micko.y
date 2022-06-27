@@ -528,7 +528,6 @@ function_call
     else clear_symbols(get_last_element()-argument_counter+1);
     set_type(FUN_REG, get_type(fcall_idx));
     $$ = FUN_REG;
-    print_symtab();
   }
   ;
 

@@ -1,4 +1,4 @@
-//test ok interface declaring and implementing it in class Person
+//test ok calling implemented interface methods from main
 
 interface Employee {
     int calculateVacationDays();
@@ -40,11 +40,8 @@ class Person implements Employee{
 }
 
 int main() {
-    int age;
-    int wage;
-    int experience;
-    Person p = new Person(1000, 22, 1);
-    age = p.getAge();
-    wage = p.getWage();
-    experience = p.getExperience();
+    Person p = new Person();
+    Person p1 = new Person(32, 2000,11);
+    p.wage = p1.wage;
+    p.age = p1.getAge();
 }
